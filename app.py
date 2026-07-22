@@ -274,9 +274,58 @@ html, body, [class*="css"] {{ font-family: 'Inter', sans-serif; }}
 
 .stApp {{ background: linear-gradient(160deg, {BG} 0%, {BG} 100%); color: {TEXT}; transition: background 0.3s ease; }}
 
-#MainMenu, footer, header {{ visibility: hidden; }}
+#MainMenu, footer {{ visibility: hidden; }}
+.stDeployButton {{ display: none !important; }}
+
+/* keep the native header bar untouched in structure (it hosts the sidebar collapse/expand button) — only recolor it */
+header[data-testid="stHeader"] {{ background: transparent !important; }}
+
+/* cosmetic-only styling of the native sidebar toggle buttons — do NOT touch display/visibility,
+   Streamlit itself toggles that between the two states; forcing it here is what breaks the "show" button */
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapseButton"] {{
+  background:{SURFACE} !important;
+  border:1px solid {BORDER} !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important;
+}}
+[data-testid="collapsedControl"]:hover,
+[data-testid="stSidebarCollapsedControl"]:hover,
+[data-testid="stSidebarCollapseButton"]:hover {{ background:{SURFACE_2} !important; }}
+[data-testid="collapsedControl"] svg,
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="stSidebarCollapseButton"] svg {{ fill:{ACCENT} !important; color:{ACCENT} !important; }}
 
 .block-container {{ padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1400px; }}
+
+/* ============================= RESPONSIVENESS ============================= */
+@media (max-width: 992px) {{
+  .block-container {{ padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
+  section[data-testid="stSidebar"] {{ width: 320px !important; }}
+}}
+
+@media (max-width: 768px) {{
+  section[data-testid="stSidebar"] {{ min-width: 82vw !important; max-width: 82vw !important; }}
+  .header-wrap {{ flex-wrap: wrap; gap: 10px; }}
+  .header-logo-card {{ width: 92px !important; height: 52px !important; }}
+  .header-title {{ font-size: 1.35rem !important; }}
+  .header-sub {{ font-size: 0.82rem !important; }}
+  .meta-pill {{ font-size: 0.68rem !important; padding: 3px 9px !important; }}
+  .block-container {{ padding-left: 0.75rem !important; padding-right: 0.75rem !important; }}
+  .chart-card {{ padding: 14px 14px 6px 14px !important; }}
+  .chart-title {{ font-size: 0.95rem !important; }}
+  .insights-box {{ padding: 14px 16px !important; }}
+  [data-baseweb="tab"] * {{ font-size: 0.76rem !important; }}
+}}
+
+@media (max-width: 480px) {{
+  .header-title {{ font-size: 1.1rem !important; }}
+  .header-sub {{ font-size: 0.74rem !important; }}
+  .header-logo-card {{ width: 72px !important; height: 40px !important; }}
+  .meta-pills {{ gap: 5px !important; }}
+  section[data-testid="stSidebar"] {{ min-width: 90vw !important; max-width: 90vw !important; }}
+}}
 
 @keyframes fadeInUp {{ from {{ opacity: 0; transform: translateY(14px); }} to {{ opacity: 1; transform: translateY(0); }} }}
 .fade-in {{ animation: fadeInUp 0.6s ease both; }}
