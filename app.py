@@ -117,6 +117,8 @@ def _find_data_file():
     here = os.path.dirname(os.path.abspath(__file__))
     candidates = glob.glob(os.path.join(here, "**", "*weather*1947*.csv"), recursive=True)
     if not candidates:
+        candidates = glob.glob(os.path.join(here, "**", "*weather_data_from_1947*.csv"), recursive=True)
+    if not candidates:
         candidates = glob.glob(os.path.join(here, "**", "*.csv"), recursive=True)
     if not candidates:
         candidates = glob.glob("*weather*.csv") + glob.glob("*.csv")
@@ -443,29 +445,10 @@ table.dark-table tbody tr:hover {{ background:{SURFACE_2}; }}
 </style>""", unsafe_allow_html=True)
 
 # =========================================================================
-# HEADER (with Light / Dark toggle)
+# HEADER (with Light / Dark toggle) — content filled in after filters are applied below,
+# but the placeholder is created here so it stays visually at the top of the page.
 # =========================================================================
-h_left, h_right = st.columns([6, 1])
-with h_left:
-    st.markdown(f"""
-    <div class="header-wrap fade-in">
-      <div class="header-logo-card"><img src="data:image/png;base64,{LOGO_BASE64}" alt="Gallup Pakistan"/></div>
-      <div>
-        <p class="header-title">Pakistan Climate & Weather Dashboard</p>
-        <p class="header-sub">Monthly temperature &amp; precipitation records across 6 major cities</p>
-        <div class="meta-pills">
-          <span class="meta-pill">1947 – 2025</span>
-          <span class="meta-pill">6 Cities</span>
-          <span class="meta-pill">5,688 Monthly Records</span>
-          <span class="meta-pill">79 Years of Data</span>
-        </div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-with h_right:
-    st.write("")
-    st.toggle("🌙 Dark", value=st.session_state.theme_dark, key="theme_dark",
-              help="Switch between light and dark mode")
+header_slot = st.empty()
 
 # =========================================================================
 # SIDEBAR FILTERS (cascading Province -> City)
@@ -514,12 +497,43 @@ df = df_all[
 ].copy()
 
 if df.empty:
-    st.warning("No data matches the current filter selection. Please broaden your filters.")
+    with header_slot.container():
+        st.warning("No data matches the current filter selection. Please broaden your filters.")
     st.stop()
 
 CMAP = city_color_map(sel_cities)
 cap_years = f"{yr_range[0]}–{yr_range[1]}"
-st.caption(f"Showing **{len(sel_cities)} cities** · **{cap_years}** · **{len(df):,} records**")
+
+# --- render the header now, with pills reflecting the current filter selection ---
+n_cities_sel = len(sel_cities)
+n_records_sel = len(df)
+n_years_sel = df["Year"].nunique()
+cities_label = "City" if n_cities_sel == 1 else "Cities"
+years_label = "Year" if n_years_sel == 1 else "Years"
+
+with header_slot.container():
+    h_left, h_right = st.columns([6, 1])
+    with h_left:
+        st.markdown(f"""
+        <div class="header-wrap fade-in">
+          <div class="header-logo-card"><img src="data:image/png;base64,{LOGO_BASE64}" alt="Gallup Pakistan"/></div>
+          <div>
+            <p class="header-title">Pakistan Climate & Weather Dashboard</p>
+            <p class="header-sub">Monthly temperature &amp; precipitation records across {n_cities_sel} selected {cities_label.lower()}</p>
+            <div class="meta-pills">
+              <span class="meta-pill">{cap_years}</span>
+              <span class="meta-pill">{n_cities_sel} {cities_label}</span>
+              <span class="meta-pill">{n_records_sel:,} Monthly Records</span>
+              <span class="meta-pill">{n_years_sel} {years_label} of Data</span>
+            </div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with h_right:
+        st.write("")
+        st.toggle("🌙 Dark", value=st.session_state.theme_dark, key="theme_dark",
+                  help="Switch between light and dark mode")
+
 
 # =========================================================================
 # TABS (Raw Data tab removed)
